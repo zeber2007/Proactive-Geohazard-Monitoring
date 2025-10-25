@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoVisual-Detect Project Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Calm Harmony (Grays, Whites, and a muted Blue accent) -->
+    <!-- Application Structure Plan: A single-page application with a sticky top navigation bar. This structure allows users to either scroll naturally or use the nav links to jump to specific thematic sections: 'The Problem' (Inspiration), 'Our Solution' (Core concept), 'How It Works' (System architecture & alerts), 'Implementation' (Phased plan), and 'Risks & Takeaways'. This thematic grouping, supported by interactive elements like tabs and accordions, is more intuitive for exploration than a simple linear document. It's designed to guide the user from the "why" (problem) to the "what" (solution) and "how" (implementation/risks). -->
+    <!-- Visualization & Content Choices:
+        - Inspiration -> Goal: Compare -> Viz: Side-by-side content cards (HTML/Tailwind) to contrast 'Traditional Methods' with 'The Data Gap'. Interaction: None, layout provides clarity. Justification: Clearly establishes the problem.
+        - What it does (Dual-Analysis) -> Goal: Inform/Compare -> Viz: Interactive Tabs (HTML/JS). Tab 1: 2D Semantic Analysis. Tab 2: 3D Volume Analysis. Interaction: User clicks tabs to toggle content. Justification: This is the core concept; an interactive toggle forces user engagement and highlights the two distinct methods.
+        - How it Works (Architecture) -> Goal: Organize -> Viz: A visual, non-graphic flow diagram using HTML/Tailwind flexbox (Input -> Processing -> Alerts). Interaction: None, visual flow. Justification: Simplifies the system architecture into a digestible, linear process.
+        - How it Works (Alerts) -> Goal: Inform -> Viz: Styled content cards (HTML/Tailwind) for Alert Levels 1, 2, 3. Interaction: Hover effect. Justification: Breaks out the alert-driven outcomes clearly.
+        - Implementation Plan -> Goal: Organize/Change -> Viz: A vertical stepper/timeline component (HTML/Tailwind). Interaction: None. Justification: Clearly presents the 4-phase plan as a sequence.
+        - Challenges -> Goal: Organize -> Viz: An accordion component (HTML/JS). Each challenge is a clickable header. Interaction: Click to expand/collapse mitigation. Justification: Condenses a large amount of text, making it scannable and interactive.
+        - Accomplishments & Takeaways -> Goal: Inform -> Viz: Styled icon/content cards (HTML/Tailwind grid). Interaction: None. Justification: Summarizes key benefits and learnings in a visually appealing grid.
+        - Chart.js/Plotly -> Goal: N/A. Viz: None. Justification: The source report is purely descriptive and contains no quantitative datasets, only illustrative examples (e.g., "2 cm of creep"). Adding a chart would be fabricating data and would be inappropriate. The focus is on interactively presenting the *concepts*.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+        .tab-btn.active {
+            border-bottom-color: #3b82f6; /* blue-500 */
+            color: #3b82f6;
+        }
+        #gemini-spinner {
+            border: 4px solid rgba(0, 0, 0, .1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans leading-relaxed">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-600">GeoVisual-Detect</h1>
+            <div class="hidden md:flex space-x-6">
+                <a href="#problem" class="text-gray-600 hover:text-blue-600 transition-colors">The Problem</a>
+                <a href="#solution" class="text-gray-600 hover:text-blue-600 transition-colors">Our Solution</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-blue-600 transition-colors">How It Works</a>
+                <a href="#implementation" class="text-gray-600 hover:text-blue-600 transition-colors">Implementation</a>
+                <a href="#risks" class="text-gray-600 hover:text-blue-600 transition-colors">Risks & Takeaways</a>
+            </div>
+            <button id="mobile-menu-btn" class="md:hidden text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute top-full left-0 w-full">
+            <a href="#problem" class="block px-6 py-3 text-gray-600 hover:bg-gray-100">The Problem</a>
+            <a href="#solution" class="block px-6 py-3 text-gray-600 hover:bg-gray-100">Our Solution</a>
+            <a href="#how-it-works" class="block px-6 py-3 text-gray-600 hover:bg-gray-100">How It Works</a>
+            <a href="#implementation" class="block px-6 py-3 text-gray-600 hover:bg-gray-100">Implementation</a>
+            <a href="#risks" class="block px-6 py-3 text-gray-600 hover:bg-gray-100">Risks & Takeaways</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-6">
+
+        <!-- Hero Section -->
+        <section id="home" class="text-center my-16">
+            <h2 class="text-4xl font-bold mb-4">Proactive Geohazard Monitoring</h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                **GeoVisual-Detect** is an intelligent, end-to-end software engine that ingests visual data from cameras and produces actionable geohazard alerts. It works by establishing a high-fidelity visual baseline of a slope and then continuously watching for change.
+            </p>
+        </section>
+
+        <!-- The Problem -->
+        <section id="problem" class="my-24">
+            <h2 class="text-3xl font-bold text-center mb-12">The Problem: A Critical "Data Gap"</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto text-center mb-12">
+                Landslides and avalanches pose significant threats, but traditional monitoring methods fall short, leaving a dangerous gap in our ability to detect disasters before they happen.
+            </p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-4 text-red-600">Traditional Methods</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li><span class="font-semibold">In-Ground Sensors:</span> Expensive and difficult to scale across large areas.</li>
+                        <li><span class="font-semibold">Satellite Monitoring:</span> Periodic, not continuous. Rapid-onset events can be missed entirely.</li>
+                        <li><span class="font-semibold">Manual Inspection:</span> Relies on subjective human observation, which isn't scalable and is prone to error.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-4 text-gray-800">The "Data Gap" We're Solving</h3>
+                    <p class="text-gray-700">
+                        The most critical, pre-failure warning signs—such as new cracks, minor rockfalls, or slow soil creep—are often too subtle for a human to notice until it's too late.
+                        <br><br>
+                        This project was inspired by the need for an automated, cost-effective, and continuous monitoring system that can see and quantify these subtle visual pre-cursors.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Our Solution -->
+        <section id="solution" class="my-24 bg-white p-12 rounded-lg shadow-lg">
+            <h2 class="text-3xl font-bold text-center mb-12">Our Solution: The Dual-Analysis Engine</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto text-center mb-12">
+                GeoVisual-Detect provides the "best of both worlds" by fusing two types of analysis: high-frequency 2D analysis for rapid events and high-precision 3D analysis for slow, cumulative changes.
+            </p>
+
+            <!-- Interactive Tabs -->
+            <div class="max-w-4xl mx-auto">
+                <div class="flex border-b border-gray-300 mb-6">
+                    <button class="tab-btn active text-lg font-semibold py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-blue-600" data-tab="tab-2d">
+                        1. 2D Semantic Change (High-Frequency)
+                    </button>
+                    <button class="tab-btn text-lg font-semibold py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-blue-600" data-tab="tab-3d">
+                        2. 3D Shape/Volume (Low-Frequency)
+                    </button>
+                </div>
+
+                <!-- Tab Content -->
+                <div id="tab-2d" class="tab-content">
+                    <h3 class="text-2xl font-semibold mb-4">Detecting Rapid Change</h3>
+                    <p class="text-gray-700 text-lg mb-4">Every 1-5 minutes, the system analyzes new images. It uses a deep learning model (semantic segmentation) to classify every pixel (e.g., `stable rock`, `loose rock`, `soil`, `snow`).</p>
+                    <p class="text-gray-700 text-lg">It then compares this to the baseline to detect rapid, localized changes, such as new cracks, boulder movement, or small rockfalls. This provides an immediate warning for fast-developing events.</p>
+                </div>
+                <div id="tab-3d" class="tab-content hidden">
+                    <h3 class="text-2xl font-semibold mb-4">Quantifying Slow Deformation</h3>
+                    <p class="text-gray-700 text-lg mb-4">Every 6-24 hours, the system uses photogrammetry to build a new 3D model of the slope. It compares this to the 3D baseline to perform a "cloud-to-cloud" comparison.</p>
+                    <p class="text-gray-700 text-lg">This method is extremely sensitive and can quantify slow, cumulative deformation like soil creep, or calculate the exact volume of material lost (erosion) or gained (deposition) in an area—key pre-cursors to failure.</p>
+                </div>
+            </div>
+
+            <!-- Accomplishments / Key Features -->
+            <h3 class="text-2xl font-bold text-center mt-16 mb-8">Key Project Features</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 class="text-xl font-semibold mb-2 text-blue-600">Proactive Monitoring</h4>
+                    <p class="text-gray-600">Moves monitoring from a reactive to a proactive posture, catching pre-cursors to failure.</p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 class="text-xl font-semibold mb-2 text-blue-600">Cost-Effective & Scalable</h4>
+                    <p class="text-gray-600">Leverages COTS cameras, making the solution far more scalable than in-ground sensors.</p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 class="text-xl font-semibold mb-2 text-blue-600">High-Fidelity Detection</h4>
+                    <p class="text-gray-600">Detects and *quantifies* change (e.g., "2 cm of creep") not just simple "motion detected" alerts.</p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h4 class="text-xl font-semibold mb-2 text-blue-600">Intelligent Filtering</h4>
+                    <p class="text-gray-600">Uses semantic segmentation to understand *what* is changing (rock vs. animal), reducing false positives.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section id="how-it-works" class="my-24">
+            <h2 class="text-3xl font-bold text-center mb-12">How It Works: System Architecture</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto text-center mb-16">
+                The system is designed as an end-to-end pipeline, from data capture on-site to intelligent processing in the cloud, resulting in actionable alerts.
+            </p>
+            
+            <!-- System Flow Diagram -->
+            <div class="flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-8">
+                <!-- 1. Input -->
+                <div class="bg-white p-8 rounded-lg shadow-lg text-center w-full md:w-1/3">
+                    <h3 class="text-2xl font-semibold mb-3">1. Input Module (On-Site)</h3>
+                    <p class="text-gray-700">Fixed, high-resolution cameras (including IR) capture continuous imagery. An on-site edge device (e.g., NVIDIA Jetson) handles pre-processing.</p>
+                </div>
+                
+                <div class="text-4xl text-blue-500 font-bold transform rotate-90 md:rotate-0">&rarr;</div>
+
+                <!-- 2. Processing -->
+                <div class="bg-white p-8 rounded-lg shadow-lg text-center w-full md:w-1/3">
+                    <h3 class="text-2xl font-semibold mb-3">2. Processing Module (Cloud)</h3>
+                    <p class="text-gray-700">The "brain" of the system. Ingests data, aligns images, and runs the 2D segmentation and 3D reconstruction models to detect and fuse changes.</p>
+                </div>
+
+                <div class="text-4xl text-blue-500 font-bold transform rotate-90 md:rotate-0">&rarr;</div>
+
+                <!-- 3. Alerts -->
+                <div class="bg-white p-8 rounded-lg shadow-lg text-center w-full md:w-1/3">
+                    <h3 class="text-2xl font-semibold mb-3">3. Decision & Alert Core</h3>
+                    <p class="text-gray-700">An AI module classifies the severity of the change and issues tiered alerts to stakeholders via a dashboard, API, or SMS.</p>
+                </div>
+            </div>
+
+            <!-- Alert Levels -->
+            <h3 class="text-2xl font-bold text-center mt-16 mb-8">Tiered Alert System</h3>
+            <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-yellow-400 flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-semibold mb-2">Level 1 (Watch)</h4>
+                        <p class="text-gray-700">Minor, slow change detected (e.g., 2 cm of soil creep). Notifies monitoring team.</p>
+                    </div>
+                    <button class="gemini-btn mt-4 inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-type="alert" data-level="1 (Watch)" data-desc="Minor, slow change detected (e.g., 2 cm of soil creep). Notifies monitoring team.">
+                        <span class="mr-2">✨</span> Draft Alert Message
+                    </button>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-orange-500 flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-semibold mb-2">Level 2 (Alert)</h4>
+                        <p class="text-gray-700">Moderate, localized change (e.g., new rockfall cluster). Issues a stakeholder alert.</p>
+                    </div>
+                    <button class="gemini-btn mt-4 inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-type="alert" data-level="2 (Alert)" data-desc="Moderate, localized change (e.g., new rockfall cluster). Issues a stakeholder alert.">
+                        <span class="mr-2">✨</span> Draft Alert Message
+                    </button>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-red-600 flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-semibold mb-2">Level 3 (Critical)</h4>
+                        <p class="text-gray-700">Large-scale, rapid change. An immediate, critical alert is sent to all stakeholders.</p>
+                    </div>
+                    <button class="gemini-btn mt-4 inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-type="alert" data-level="3 (Critical)" data-desc="Large-scale, rapid change. An immediate, critical alert is sent to all stakeholders.">
+                        <span class="mr-2">✨</span> Draft Alert Message
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Implementation -->
+        <section id="implementation" class="my-24 bg-white p-12 rounded-lg shadow-lg">
+            <h2 class="text-3xl font-bold text-center mb-12">Implementation Plan</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto text-center mb-16">
+                The project will be rolled out in four distinct phases, moving from initial data collection to full field validation.
+            </p>
+            
+            <!-- 4-Phase Stepper -->
+            <div class="max-w-2xl mx-auto">
+                <ol class="relative border-l border-gray-300">
+                    <li class="mb-10 ml-6">
+                        <span class="absolute flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full -left-4 ring-8 ring-white">1</span>
+                        <h3 class="flex items-center text-xl font-semibold text-gray-900">Phase 1: Data Collection</h3>
+                        <p class="text-base font-normal text-gray-600">Identify pilot sites and install hardware to collect a diverse baseline dataset across all weather and lighting conditions.</p>
+                    </li>
+                    <li class="mb-10 ml-6">
+                        <span class="absolute flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full -left-4 ring-8 ring-white">2</span>
+                        <h3 class="text-xl font-semibold text-gray-900">Phase 2: Model Development</h3>
+                        <p class="text-base font-normal text-gray-600">Manually annotate thousands of images to train the semantic segmentation model and benchmark the 3D differencing algorithms.</p>
+                    </li>
+                    <li class="mb-10 ml-6">
+                        <span class="absolute flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full -left-4 ring-8 ring-white">3</span>
+                        <h3 class="text-xl font-semibold text-gray-900">Phase 3: System Integration</h3>
+                        <p class="text-base font-normal text-gray-600">Build the end-to-end software pipeline, connecting the on-site ingestion, cloud processing, and user dashboard.</p>
+                    </li>
+                    <li class="ml-6">
+                        <span class="absolute flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full -left-4 ring-8 ring-white">4</span>
+                        <h3 class="text-xl font-semibold text-gray-900">Phase 4: Field Deployment & Validation</h3>
+                        <p class="text-base font-normal text-gray-600">Deploy the prototype, monitor its performance, and validate its alerts against ground-truth data (e.g., drone surveys).</p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+        
+        <!-- Risks & Takeaways -->
+        <section id="risks" class="my-24">
+            <h2 class="text-3xl font-bold text-center mb-12">Risks & Key Takeaways</h2>
+            <div class="grid lg:grid-cols-2 gap-12">
+                <!-- Accordion for Risks -->
+                <div>
+                    <h3 class="text-2xl font-semibold mb-6">Challenges We Might Run Into</h3>
+                    <div id="accordion-container" class="space-y-4">
+                        <div class="accordion-item bg-white rounded-lg shadow-md border border-gray-200">
+                            <button class="accordion-header flex justify-between items-center w-full p-5 font-semibold text-left text-gray-800">
+                                <span>Illumination & Shadows</span>
+                                <svg class="w-6 h-6 shrink-0 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="accordion-content hidden p-5 border-t border-gray-200">
+                                <p class="text-gray-600">Variable lighting can create "false" changes.
+                                <br><strong>Mitigation:</strong> Use IR cameras for nighttime consistency and apply illumination-invariant algorithms and shadow-removal filters.</p>
+                                <button class="gemini-btn mt-4 inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-type="mitigation" data-challenge="Illumination & Shadows" data-current-mitigation="Use IR cameras for nighttime consistency and apply illumination-invariant algorithms and shadow-removal filters.">
+                                    <span class="mr-2">✨</span> Suggest Additional Mitigations
+                                </button>
+                            </div>
+                        </div>
+                        <div class="accordion-item bg-white rounded-lg shadow-md border border-gray-200">
+                            <button class="accordion-header flex justify-between items-center w-full p-5 font-semibold text-left text-gray-800">
+                                <span>Weather (Rain, Snow, Fog)</span>
+                                <svg class="w-6 h-6 shrink-0 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="accordion-content hidden p-5 border-t border-gray-200">
+                                <p class="text-gray-600">Obscured visibility is a major issue.
+                                <br><strong>Mitigation:</strong> Use weather-proof hardware and an algorithm to detect and discard "low-visibility" frames. Train models on weather-affected images to improve resilience.</p>
+                                <button class="gemini-btn mt-4 inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-type="mitigation" data-challenge="Weather (Rain, Snow, Fog)" data-current-mitigation="Use weather-proof hardware and an algorithm to detect and discard 'low-visibility' frames. Train models on weather-affected images to improve resilience.">
+                                    <span class="mr-2">✨</span> Suggest Additional Mitigations
+                                </button>
+                            </div>
+                        </div>
+                        <div class="accordion-item bg-white rounded-lg shadow-md border border-gray-200">
+                            <button class="accordion-header flex justify-between items-center w-full p-5 font-semibold text-left text-gray-800">
+                                <span>False Positives (Animals, Vegetation)</span>
+                                <svg class="w-6 h-6 shrink-0 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="accordion-content hidden p-5 border-t border-gray-200">
+                                <p class="text-gray-600">Non-geological movement (birds, wind-blown trees) could trigger false alarms.
+                                <br><strong>Mitigation:</strong> Our semantic segmentation model is trained to automatically classify and ignore these non-relevant changes.</p>
+                                <button class="gemini-btn mt-4 inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-type="mitigation" data-challenge="False Positives (Animals, Vegetation)" data-current-mitigation="Our semantic segmentation model is trained to automatically classify and ignore these non-relevant changes.">
+                                    <span class="mr-2">✨</span> Suggest Additional Mitigations
+                                </button>
+                            </div>
+                        </div>
+                        <div class="accordion-item bg-white rounded-lg shadow-md border border-gray-200">
+                            <button class="accordion-header flex justify-between items-center w-full p-5 font-semibold text-left text-gray-800">
+                                <span>Camera Movement</span>
+                                <svg class="w-6 h-6 shrink-0 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="accordion-content hidden p-5 border-t border-gray-200">
+                                <p class="text-gray-600">Minor vibration from wind can throw off pixel-level comparisons.
+                                <br><strong>Mitigation:</strong> Use extremely stable mounts, with an automatic image registration engine to correct any minor shifts.</p>
+                                <button class="gemini-btn mt-4 inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-type="mitigation" data-challenge="Camera Movement" data-current-mitigation="Use extremely stable mounts, with an automatic image registration engine to correct any minor shifts.">
+                                    <span class="mr-2">✨</span> Suggest Additional Mitigations
+                                </button>
+                            </div>
+                        </div>
+                         <div class="accordion-item bg-white rounded-lg shadow-md border border-gray-200">
+                            <button class="accordion-header flex justify-between items-center w-full p-5 font-semibold text-left text-gray-800">
+                                <span>Data & Power in Remote Locations</span>
+                                <svg class="w-6 h-6 shrink-0 transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="accordion-content hidden p-5 border-t border-gray-200">
+                                <p class="text-gray-600">High data volume and lack of grid power are concerns.
+                                <br><strong>Mitigation:</strong> On-site edge computing drastically reduces data transmission, and the system can be paired with solar/battery power solutions.</p>
+                                <button class="gemini-btn mt-4 inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-type="mitigation" data-challenge="Data & Power in Remote Locations" data-current-mitigation="On-site edge computing drastically reduces data transmission, and the system can be paired with solar/battery power solutions.">
+                                    <span class="mr-2">✨</span> Suggest Additional Mitigations
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Key Takeaways -->
+                <div>
+                    <h3 class="text-2xl font-semibold mb-6">What We Learned</h3>
+                    <div class="space-y-4">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h4 class="text-lg font-semibold mb-2">Data Pre-processing is Everything</h4>
+                            <p class="text-gray-600">Image registration and illumination normalization are just as important as the deep learning model itself. Garbage in, garbage out.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h4 class="text-lg font-semibold mb-2">No Single "Silver Bullet"</h4>
+                            <p class="text-gray-600">Relying on only 2D analysis misses slow creep. Relying on only 3D misses rapid events. The fusion of both data types is essential.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h4 class="text-lg font-semibold mb-2">Understand the "Noise"</h4>
+                            <p class="text-gray-600">Characterizing "normal" changes (lighting, animals, vegetation) as part of the baseline is critical for reducing false alarms.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h4 class="text-lg font-semibold mb-2">Edge Computing is a Necessity</h4>
+                            <p class="text-gray-600">For real-world remote deployments, processing data at the source is a core requirement for managing data costs and power.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 text-center p-8 mt-16">
+        <p>&copy; 2025 GeoVisual-Detect Project. All rights reserved.</p>
+    </footer>
+
+    <!-- Gemini Modal -->
+    <div id="gemini-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center p-5 border-b border-gray-200">
+                <h3 id="gemini-modal-title" class="text-2xl font-semibold">✨ AI Generated Content</h3>
+                <button id="gemini-modal-close-btn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="gemini-modal-spinner" class="flex justify-center items-center h-32">
+                    <div id="gemini-spinner"></div>
+                </div>
+                <div id="gemini-modal-content" class="text-gray-700 leading-relaxed space-y-4">
+                    <!-- Content will be injected here -->
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200 bg-gray-50 text-right rounded-b-lg">
+                <button id="gemini-modal-close-btn-footer" class="px-5 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile Menu Toggle
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Close mobile menu on link click
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+
+            // --- Gemini API Integration ---
+
+            const geminiModal = document.getElementById('gemini-modal');
+            const geminiModalTitle = document.getElementById('gemini-modal-title');
+            const geminiModalContent = document.getElementById('gemini-modal-content');
+            const geminiModalSpinner = document.getElementById('gemini-modal-spinner');
+            const closeBtns = [document.getElementById('gemini-modal-close-btn'), document.getElementById('gemini-modal-close-btn-footer')];
+            const geminiBtns = document.querySelectorAll('.gemini-btn');
+
+            const apiKey = "";
+            const apiUrl = `https://generativelen.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const showModal = () => geminiModal.classList.remove('hidden');
+            const hideModal = () => geminiModal.classList.add('hidden');
+
+            closeBtns.forEach(btn => btn.addEventListener('click', hideModal));
+            geminiModal.addEventListener('click', (e) => {
+                if (e.target === geminiModal) {
+                    hideModal();
+                }
+            });
+
+            const formatResponse = (text) => {
+                return text.replace(/\* (.*?)(?=\n\*|\n\n|$)/g, '<li class="ml-5 list-disc">$1</li>')
+                           .replace(/(\r\n|\n|\r)/gm, '<br>');
+            };
+
+            const exponentialBackoff = async (fn, maxRetries = 5, delay = 1000) => {
+                let attempt = 0;
+                while (attempt < maxRetries) {
+                    try {
+                        return await fn();
+                    } catch (error) {
+                        if (error.status === 429 || error.status === 503) {
+                            const backoffTime = delay * Math.pow(2, attempt) + Math.random() * 1000;
+                            await new Promise(resolve => setTimeout(resolve, backoffTime));
+                            attempt++;
+                        } else {
+                            throw error;
+                        }
+                    }
+                }
+                throw new Error("Max retries reached");
+            };
+            
+            const callGeminiAPI = async (systemPrompt, userQuery) => {
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    },
+                };
+
+                const fetchWithBackoff = async () => {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const error = new Error(`API Error: ${response.statusText}`);
+                        error.status = response.status;
+                        throw error;
+                    }
+                    return response.json();
+                };
+
+                try {
+                    const result = await exponentialBackoff(fetchWithBackoff);
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        return candidate.content.parts[0].text;
+                    } else {
+                        throw new Error("Invalid response structure from API.");
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    return `Sorry, an error occurred while processing your request. Please check the console for details.`;
+                }
+            };
+
+            geminiBtns.forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const type = btn.dataset.type;
+                    let systemPrompt = "";
+                    let userQuery = "";
+                    let title = "✨ AI Generated Content";
+
+                    geminiModalSpinner.classList.remove('hidden');
+                    geminiModalContent.classList.add('hidden');
+                    geminiModalContent.innerHTML = "";
+                    showModal();
+
+                    if (type === 'alert') {
+                        const level = btn.dataset.level;
+                        const desc = btn.dataset.desc;
+                        title = `Draft Alert: Level ${level}`;
+                        systemPrompt = "You are a geohazard alert system operator. Draft a concise, clear, and actionable alert message for stakeholders based on the following information. The message should be professional, direct, and specify the threat and recommended action. Do not add any preamble or sign-off.";
+                        userQuery = `Alert Level: ${level}\nDescription: ${desc}\n\nDraft the alert message.`;
+                    
+                    } else if (type === 'mitigation') {
+                        const challenge = btn.dataset.challenge;
+                        const currentMitigation = btn.dataset.currentMitigation;
+                        title = `Mitigations for: ${challenge}`;
+                        systemPrompt = "You are a senior risk management consultant and geotechnical engineer. Given a challenge and a current mitigation strategy, suggest 2-3 additional, novel, or complementary mitigation strategies. Format them as a bulleted list. Do not add any preamble.";
+                        userQuery = `Challenge: ${challenge}\nCurrent Mitigation: ${currentMitigation}\n\nSuggest additional mitigations.`;
+                    }
+
+                    geminiModalTitle.textContent = title;
+                    const responseText = await callGeminiAPI(systemPrompt, userQuery);
+
+                    geminiModalContent.innerHTML = formatResponse(responseText);
+                    geminiModalSpinner.classList.add('hidden');
+                    geminiModalContent.classList.remove('hidden');
+                });
+            });
+
+            // Smooth scroll for nav links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    if (this.hash !== "") {
+                        e.preventDefault();
+                        const hash = this.hash;
+                        const targetElement = document.querySelector(hash);
+                        if(targetElement) {
+                            const headerOffset = document.querySelector('header').offsetHeight;
+                            const elementPosition = targetElement.getBoundingClientRect().top;
+                            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                            window.scrollTo({
+                                top: offsetPosition,
+                                behavior: "smooth"
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
